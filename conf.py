@@ -5,6 +5,8 @@ import json
 import os
 import getpass
 import urllib
+import subprocess
+import time
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -37,23 +39,37 @@ def login_douban(): #this function was completed
     }
     return post_data
 
+p = None
+def play(url):
+    global p
+    p = subprocess.Popen(["mpg123", url])
+
+def stop():
+    global p 
+    if p:
+        p.terminate()
+        p = None
+
 
 class Get(object):
-    token_url = 'http://www.douban.com/j/app/login'
+      #获取token值的url
+    token_url = 'http://www.douban.com/j/app/login' 
+      #获取频道列表的url
     channels_url = 'http://www.douban.com/j/app/radio/channels'
 
     def __init__(self):
         self.header = header
         self.TOKEN_PATH = TOKEN_PATH
         
-    #获取token, expire, user_id值    this function was completed
+        
+      #获取token, expire, user_id值    this function was completed
     def get_token(self):
-	#如果上次保存在文件中则从文件获取
+	       #如果上次保存在文件中则从文件获取
         if os.path.isfile(self.TOKEN_PATH):
             f = open(self.TOKEN_PATH).read()
             TOKEN = json.loads(f)
             return TOKEN
-	#如果还未获取，获取后保存到文件
+	      #如果还未获取，获取后保存到文件
         else:
             postdata = login_douban()
             rawjson = requests.post(self.__class__.token_url, headers=self.header, data=postdata).text
@@ -72,7 +88,7 @@ class Get(object):
             else:
                 print decodejson['err']
 
-    #获取频道列表  not complete
+      #获取频道列表  not complete
     def get_channels(self):
         self.channel_list = [{
             u'name': u'红心兆赫',
@@ -82,25 +98,55 @@ class Get(object):
         data = json.loads(rawjson)['channels']
         self.channel_list += data
         return self.channel_list
-    
+ 
 
-    def get_song_list(self):
+
+
+
+      #获取歌曲列表  not complete
+    def getsong_list_url(self):
         token = self.get_token()
         v = {
             'version': 100,
             'app_name': 'radio_desktop_win',
-            'channel': 4, 
-            'type': 'e',
-            'sid': 1}
+            'channel': 4,       #频道id
+            'type': 'e',        #报告类型
+            'sid': 1,           #song id
+            }        
         token.update(v)
-        print urllib.urlencode(token)
-        print
-        song_url = 'http://www.douban.com/j/app/radio/people?' + urllib.urlencode(token)
-        raw =requests.get(song_url, headers=token).text
-        return json.loads(raw)
+        song_list_url = 'http://www.douban.com/j/app/radio/people?' + urllib.urlencode(token)
+        #return song_list_url
+
+        raw =requests.get(song_list_url, headers=token).text
+        songlistdecode = json.loads(raw)
+        print songlistdecode
+        for ever in songlistdecode['song']:
+            play(ever['url'])
+            print int(ever['length']) / 60.00, ever['title'], ever['artist']
+            time.sleep(int(ever['length']))
+            stop()
+
+
+    def playmp3(self):
+        song_list_url = self.getsong_list_url()
+        raw =requests.get(song_list_url).text
+        songlistdecode = json.loads(raw)
+        for ever in songlistdecode['song']:
+            play(ever['url'])
+            print int(ever['length']) / 60.00, ever['title'], ever['artist']
+            time.sleep(int(ever['length']))
+            stop()
+
+
+
+#print ever['url'], ever['title'], '#%s# %s' %(ever['albumtitle'], ever['public_time']), ever['artist'], ever['rating_avg'], 
+        
+    
         
 if __name__ == '__main__':
     get = Get()
     print get.get_token()
-    #print get.get_channels()
-    print get.get_song_list()
+    print
+#print get.get_channels()
+    print get.getsong_list_url()
+#    get.playmp3()
