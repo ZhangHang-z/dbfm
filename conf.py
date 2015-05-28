@@ -39,18 +39,6 @@ def login_douban(): #this function was completed
     }
     return post_data
 
-p = None
-def play(url):
-    global p
-    p = subprocess.Popen(["mpg123", url])
-
-def stop():
-    global p 
-    if p:
-        p.terminate()
-        p = None
-
-
 class Get(object):
       #获取token值的url
     token_url = 'http://www.douban.com/j/app/login' 
@@ -88,6 +76,7 @@ class Get(object):
             else:
                 print decodejson['err']
 
+
       #获取频道列表  not complete
     def get_channels(self):
         self.channel_list = [{
@@ -99,54 +88,27 @@ class Get(object):
         self.channel_list += data
         return self.channel_list
  
-
-
-
-
-      #获取歌曲列表  not complete
+ 
+      #返回某频道歌曲列表url，这个url经过请求会返回一个歌曲列表json，里面包含5首歌  
     def getsong_list_url(self):
         token = self.get_token()
         v = {
             'version': 100,
             'app_name': 'radio_desktop_win',
-            'channel': 4,       #频道id
+            'channel': -3,       #频道id
             'type': 'e',        #报告类型
             'sid': 1,           #song id
             }        
         token.update(v)
         song_list_url = 'http://www.douban.com/j/app/radio/people?' + urllib.urlencode(token)
-        #return song_list_url
+        return song_list_url
 
-        raw =requests.get(song_list_url, headers=token).text
-        songlistdecode = json.loads(raw)
-        print songlistdecode
-        for ever in songlistdecode['song']:
-            play(ever['url'])
-            print int(ever['length']) / 60.00, ever['title'], ever['artist']
-            time.sleep(int(ever['length']))
-            stop()
-
-
-    def playmp3(self):
-        song_list_url = self.getsong_list_url()
-        raw =requests.get(song_list_url).text
-        songlistdecode = json.loads(raw)
-        for ever in songlistdecode['song']:
-            play(ever['url'])
-            print int(ever['length']) / 60.00, ever['title'], ever['artist']
-            time.sleep(int(ever['length']))
-            stop()
-
-
-
-#print ever['url'], ever['title'], '#%s# %s' %(ever['albumtitle'], ever['public_time']), ever['artist'], ever['rating_avg'], 
-        
-    
-        
+   
 if __name__ == '__main__':
     get = Get()
     print get.get_token()
     print
-#print get.get_channels()
-    print get.getsong_list_url()
-#    get.playmp3()
+    #print get.get_channels()
+    #print get.getsong_list_url()
+    #get.playmp3()
+
