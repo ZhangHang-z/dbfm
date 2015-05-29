@@ -7,6 +7,8 @@ import getpass
 import urllib
 import subprocess
 import time
+import control
+
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -38,6 +40,7 @@ def login_douban(): #this function was completed
         'password': password,
     }
     return post_data
+
 
 class Get(object):
       #获取token值的url
@@ -77,25 +80,15 @@ class Get(object):
                 print decodejson['err']
 
 
-      #获取频道列表  not complete
-    def get_channels(self):
-        self.channel_list = [{
-            u'name': u'红心兆赫',
-            u'channel_id': -3, 
-        }]
-        rawjson = requests.get(self.__class__.channels_url,).text
-        data = json.loads(rawjson)['channels']
-        self.channel_list += data
-        return self.channel_list
- 
- 
       #返回某频道歌曲列表url，这个url经过请求会返回一个歌曲列表json，里面包含5首歌  
     def getsong_list_url(self):
+          #从control模块导入，获取频道对应id
+        what_channel = control.CON()  
         token = self.get_token()
         v = {
             'version': 100,
             'app_name': 'radio_desktop_win',
-            'channel': -3,       #频道id
+            'channel': what_channel.channel(),       #频道id
             'type': 'e',        #报告类型
             'sid': 1,           #song id
             }        
@@ -107,8 +100,7 @@ class Get(object):
 if __name__ == '__main__':
     get = Get()
     print get.get_token()
-    print
     #print get.get_channels()
     #print get.getsong_list_url()
-    #get.playmp3()
+
 
