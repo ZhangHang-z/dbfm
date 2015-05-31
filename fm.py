@@ -8,6 +8,7 @@ import os
 import re
 import functools
 import sys
+import getch
 
 
 red = '\033[31;1m %s \033[1;m'
@@ -20,19 +21,18 @@ pred = '\033[35;1m%s \033[1;m'
 PLAY_LOG = os.path.expanduser('~/.db_playlog.txt')
 PRE_INFOMATION = '正在加载中...'
 
+
 p = None
 
 def play(url):
     global p
     if os.path.isfile(PLAY_LOG):
         log = PLAY_LOG
-        #p = os.system('mpg123 %s' % url)
-        p = subprocess.Popen(["mpg123", url])
+        p = subprocess.Popen(["mpg123", '-q', url])
     else:
         if os.system('touch %s' % PLAY_LOG) == 0:
             log = PLAY_LOG
-            #p = os.system('mpg123 %s' % url)
-            p = subprocess.Popen(["mpg123", url])
+            p = subprocess.Popen(["mpg123", '-q', url])   
         else:
             raise "touch logging file failed"
     
@@ -75,24 +75,43 @@ def playmp3(song_url):
             for ever in songlistdecode['song']:
                 play(ever['url'])
                 kwargs = {
-                    'minutes': yellow % round(int(ever['length']) / 60.00, 1),
+                    'minutes': int(ever['length']),
                     'title': ultramarine % ever['title'],
                     'artist': green % ever['artist'],
                     'rate': pred % rate(ever['rating_avg']) 
                     }
                 interface_show(**kwargs)
-                time.sleep(int(ever['length']))
+		        """ time.sleep(int(ever['length']))   
+		            这里和time_remain() 函数冲突，下面time.sleep已经执行歌曲时长，这里再执行便又会重复
+		        """
                 stop()
 
 
 def interface_show(**kwargs):
-    print blue % '正在播放...', kwargs['title'], kwargs['artist'], kwargs['minutes'], kwargs['rate']
+    print ' '*10, kwargs['title'], kwargs['artist'], kwargs['rate'], time_remain(kwargs['minutes'])
+
+
+def time_remain(mins):
+    count = 0
+    while (count < mins):
+        count += 1
+        n = mins - count
+        time.sleep(1)
+        sys.stdout.write("%d \r" % n,)
+        sys.stdout.flush()
+        if not n:
+            return 'completed'
+
+
+def main():
+    a = connect.Get()
+    play = playmp3(a.getsong_list_url())
 
 
 if __name__ == '__main__':
-    a = connect.Get()
-    playmp3(a.getsong_list_url())
+    main()
 
 
-'''('%s %s %s %s %s' % (blue % '正在播放...', kwargs['title'], 
-                            kwargs['artist'], kwargs['minutes'], kwargs['rate']) )'''
+#blue % '正在播放...'
+#yellow % round(int(ever['length']) / 60.00, 1)
+
