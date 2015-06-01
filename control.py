@@ -6,7 +6,7 @@ import json
 class CON(object):
     channels_url = 'http://www.douban.com/j/app/radio/channels'
    
-      #获取频道列表  not complete
+      #获取频道列表  
     def get_channels(self):
         self.channel_list = [{
             u'name': u'红心兆赫',
@@ -17,7 +17,7 @@ class CON(object):
         self.channel_list += data
         return self.channel_list
 
-    
+      #输出频道名称和频道id
     def channel(self):
         channel_dict = self.get_channels()
         for cid in channel_dict:

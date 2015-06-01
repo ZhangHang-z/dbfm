@@ -84,12 +84,13 @@ class Get(object):
     def getsong_list_url(self):
           #从control模块导入，获取频道对应id
         what_channel = control.CON()  
+        channel_id = what_channel.channel()
         token = self.get_token()
         v = {
             'version': 100,
             'app_name': 'radio_desktop_win',
-            'channel': what_channel.channel(),       #频道id
-            'type': 'e',        #报告类型
+            'channel': channel_id,       #频道id
+            'type': 's',        #报告类型
             'sid': 1,           #song id
             }        
         token.update(v)
@@ -100,7 +101,6 @@ class Get(object):
 if __name__ == '__main__':
     get = Get()
     print get.get_token()
-    #print get.get_channels()
     #print get.getsong_list_url()
 
 

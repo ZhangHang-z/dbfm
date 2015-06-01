@@ -3,11 +3,11 @@ import requests
 import json
 import subprocess
 import time
-import connect
 import os
 import re
 import functools
 import sys
+import connect
 import getch
 
 
@@ -24,7 +24,7 @@ PRE_INFOMATION = '正在加载中...'
 
 p = None
 
-def play(url):
+def player(url):
     global p
     if os.path.isfile(PLAY_LOG):
         log = PLAY_LOG
@@ -73,45 +73,48 @@ def playmp3(song_url):
             raw_song_list =requests.get(song_list_url).text
             songlistdecode = json.loads(raw_song_list)
             for ever in songlistdecode['song']:
-                play(ever['url'])
+                player(ever['url'])
                 kwargs = {
                     'minutes': int(ever['length']),
                     'title': ultramarine % ever['title'],
                     'artist': green % ever['artist'],
-                    'rate': pred % rate(ever['rating_avg']) 
+                    'rate': pred % rate(ever['rating_avg']),
+                    'publish': ever['public_time'],
                     }
                 interface_show(**kwargs)
-		        """ time.sleep(int(ever['length']))   
+                """ >>> time.sleep(int(ever['length']))   
 		            这里和time_remain() 函数冲突，下面time.sleep已经执行歌曲时长，这里再执行便又会重复
-		        """
+                """
                 stop()
 
 
 def interface_show(**kwargs):
-    print ' '*10, kwargs['title'], kwargs['artist'], kwargs['rate'], time_remain(kwargs['minutes'])
+    print kwargs['title'], kwargs['artist'], kwargs['publish'], kwargs['rate'], time_remaining(kwargs['minutes'])
+    
 
 
-def time_remain(mins):
+def time_remaining(mins):
     count = 0
+    #ex_length = len(str(mins))
+    #sys.stdout.write(' ' * len(str(mins)))
     while (count < mins):
         count += 1
         n = mins - count
+        length = len(str(n))
         time.sleep(1)
-        sys.stdout.write("%d \r" % n,)
+        sys.stdout.write(str(n) + "\b"*length)
         sys.stdout.flush()
         if not n:
             return 'completed'
 
 
 def main():
-    a = connect.Get()
-    play = playmp3(a.getsong_list_url())
+    get = connect.Get()
+    playmp3(get.getsong_list_url())
 
 
 if __name__ == '__main__':
     main()
 
 
-#blue % '正在播放...'
-#yellow % round(int(ever['length']) / 60.00, 1)
 
